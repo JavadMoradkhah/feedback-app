@@ -1,15 +1,27 @@
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import FeedbackData from '../data/FeedbackData';
 import { v4 as uuidv4 } from 'uuid';
 
 const FeedbackContext = createContext();
 
 export const FeedbackProvider = ({ children }) => {
-  const [feedback, setFeedback] = useState(FeedbackData);
+  const [isLoading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState([]);
   const [feedbackEdit, setFeedbackEdit] = useState({
     item: {},
     edit: false,
   });
+
+  useEffect(() => {
+    fetchFeedback();
+  }, []);
+
+  const fetchFeedback = async () => {
+    const response = await fetch('http://localhost:5000/feedback?_sort=id&_order=desc');
+    const data = await response.json();
+    setFeedback(data);
+    setLoading(false);
+  };
 
   const addFeedback = (newFeedback) => {
     newFeedback.id = uuidv4();
@@ -32,7 +44,15 @@ export const FeedbackProvider = ({ children }) => {
 
   return (
     <FeedbackContext.Provider
-      value={{ feedback, deleteFeedback, addFeedback, feedbackEdit, editFeedback, updateFeedback }}
+      value={{
+        feedback,
+        feedbackEdit,
+        isLoading,
+        deleteFeedback,
+        addFeedback,
+        editFeedback,
+        updateFeedback,
+      }}
     >
       {children}
     </FeedbackContext.Provider>
